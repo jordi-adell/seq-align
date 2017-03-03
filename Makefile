@@ -17,16 +17,18 @@ LINK=-lalign -lstrbuf -lpthread -lz
 # Compile and bundle all non-main files into library
 SRCS=$(wildcard src/*.c)
 OBJS=$(SRCS:.c=.o)
+DEPS=$(OBJS:.o=.d)
 
 all: bin/needleman_wunsch bin/smith_waterman bin/lcs src/libalign.a examples
 
 # Build libraries only if they're downloaded
+
 src/libalign.a: $(OBJS)
 	[ -d libs/string_buffer ] && cd libs && $(MAKE)
 	ar -csru src/libalign.a $(OBJS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(OBJFLAGS) $(INCS) -c $< -o $@
+	$(CC) $(CFLAGS) $(OBJFLAGS) $(INCS) -c -MMD -MP $< -o $@
 
 bin/needleman_wunsch: src/tools/nw_cmdline.c src/libalign.a | bin
 	$(CC) -o bin/needleman_wunsch $(SRCS) $(TGTFLAGS) $(INCS) $(LIBS) src/tools/nw_cmdline.c $(LINKFLAGS)
@@ -48,10 +50,16 @@ bin:
 	mkdir -p bin
 
 clean:
-	rm -rf bin src/*.o src/libalign.a
+	rm -f $(OBJS) $(DEPS)
 	cd examples && $(MAKE) clean
+
+clean_all: clean
+	rm -rf bin
+	rm -f src/libalign.a
 
 test: bin/seq_align_tests
 	./bin/seq_align_tests
 
 .PHONY: all clean examples test
+
+-include $(DEPS)
