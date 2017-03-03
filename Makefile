@@ -23,7 +23,7 @@ all: bin/needleman_wunsch bin/smith_waterman bin/lcs src/libalign.a examples
 
 # Build libraries only if they're downloaded
 
-src/libalign.a: $(OBJS)
+src/libalign.a: $(OBJS) $(DEPS)
 	[ -d libs/string_buffer ] && cd libs && $(MAKE)
 	ar -csru src/libalign.a $(OBJS)
 
